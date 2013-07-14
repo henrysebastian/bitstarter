@@ -21,12 +21,9 @@ References:
    - https://developer.mozilla.org/en-US/docs/JSON#JSON_in_Firefox_2
 */
 
-// cheerio parses html
-// commander is useful for processing command line arguments
-
 var fs = require('fs');
-var program = require('commander');
-var cheerio = require('cheerio');
+var program = require('commander'); //for processing command line args
+var cheerio = require('cheerio');   //parses html
 var rest = require('restler');
 
 var HTMLFILE_DEFAULT = "index.html";
@@ -42,13 +39,16 @@ var assertFileExists = function(infile) {
     return instr;
 };
 
+
 var cheerioHtmlFile = function(htmlfile) {
     return cheerio.load(fs.readFileSync(htmlfile));
 };
 
+
 var loadChecks = function(checksfile) {
     return JSON.parse(fs.readFileSync(checksfile));
 };
+
 
 var checkHtmlFile = function(htmlfile, checksfile) {
     $ = cheerioHtmlFile(htmlfile);
@@ -61,31 +61,36 @@ var checkHtmlFile = function(htmlfile, checksfile) {
     return out;
 };
 
+
 var clone = function(fn) {
     // Workaround for commander.js issue.
     // http://stackoverflow.com/a/6772648
     return fn.bind({});
 };
 
+
+var rip = function (prog_file, some_message) {
+    var checkJson = checkHtmlFile(prog_file, program.checks);
+//    var outJson = JSON.stringify(checkJson, null, 4);
+//    console.log(outJson);
+}
+
 if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
-
-    //HS. Remove the default filename.
-    //    .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html')
-    //    .option('-u, --url <url>', 'URL of your choice', clone(assertFileExists), HTMLFILE_DEFAULT)
         .option('-u, --url <url>', 'URL of your choice')
         .parse(process.argv);
 
-//  console.log(process.argv[4]);
-//  console.log(program.url);
-  if(process.argv[4]=='-u') console.log(program.url);
-    rest.get(program.url).on('complete', function (){});
-//    var checkJson = checkHtmlFile(program.file, program.checks);
-//    var outJson = JSON.stringify(checkJson, null, 4);
-//    console.log(outJson);
-
+  if (process.argv[4]=='-u') {
+      rest.get(program.url).on('complete',rip);
+  }
+  else if (process.argv[4]=='-f') {
+    var checkJson = checkHtmlFile(program.file, program.checks);
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
+  }
+    
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
